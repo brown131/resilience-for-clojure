@@ -1,4 +1,4 @@
-(defproject com.github.brown131/resilience-for-clojure "0.2.8"
+(defproject org.clojars.brown131/resilience-for-clojure "0.2.8"
   :description "A clojure wrapper over Resilience4j" 
   :url "https://github.com/brown131/resilience-for-clojure"
   :license {:name "The MIT License (MIT) "
