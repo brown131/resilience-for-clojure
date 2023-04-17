@@ -1,10 +1,8 @@
 # Resilience for Clojure
 
-[![Build Status](https://travis-ci.com/ylgrgyq/resilience-for-clojure.svg?branch=master)](https://travis-ci.com/ylgrgyq/resilience-for-clojure)
-[![codecov](https://codecov.io/gh/ylgrgyq/resilience-for-clojure/branch/master/graph/badge.svg)](https://codecov.io/gh/ylgrgyq/resilience-for-clojure)
-[![Clojars Project](https://img.shields.io/clojars/v/resilience-for-clojure.svg)](https://clojars.org/resilience-for-clojure)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![cljdoc badge](https://cljdoc.org/badge/resilience-for-clojure/resilience-for-clojure)](https://cljdoc.org/d/resilience-for-clojure/resilience-for-clojure/CURRENT)
+````
+[org.clojars.brown131/resilience-for-clojure "0.2.8"]
+````
 
 A Clojure wrapper over the great library [_Resilience4j_](https://github.com/resilience4j/resilience4j) to provide fault tolerance to your service. Picked a lot of ideas from another great library [_diehard_](https://github.com/sunng87/diehard). Many thanks to both of them.
 
