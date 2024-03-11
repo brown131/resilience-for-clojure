@@ -40,8 +40,8 @@
 (s/def :breaker/wait-interval-function-in-open-state #(instance? IntervalFunction %))
 (s/def :breaker/slow-call-threshold-in-millis int?)
 (s/def :breaker/permitted-number-of-calls-in-half-open-state int?)
-(s/def :breaker/ring-buffer-size-in-half-open-state int?)
-(s/def :breaker/ring-buffer-size-in-closed-state int?)
+(s/def :breaker/permitted-number-of-calls-in-half-open-state int?)
+(s/def :breaker/sliding-window-size int?)
 (s/def :breaker/sliding-window-size int?)
 (s/def :breaker/minimum-number-of-calls int?)
 (s/def :breaker/sliding-window-type (fn [value]
@@ -67,7 +67,7 @@
                       :breaker/wait-interval-function-in-open-state
                       :breaker/slow-call-threshold-in-millis
                       :breaker/permitted-number-of-calls-in-half-open-state
-                      :breaker/ring-buffer-size-in-half-open-state :breaker/ring-buffer-size-in-closed-state
+                      :breaker/permitted-number-of-calls-in-half-open-state :breaker/sliding-window-size
                       :breaker/sliding-window-size :breaker/minimum-number-of-calls :breaker/sliding-window-type
                       :breaker/record-failure :breaker/record-exception :breaker/ignore-exception
                       :breaker/record-exceptions :breaker/ignore-exceptions

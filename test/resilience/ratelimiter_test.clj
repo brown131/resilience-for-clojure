@@ -33,24 +33,22 @@
                           :limit-for-period            1
                           :limit-refresh-period-nanos (.toNanos TimeUnit/MILLISECONDS 200)}
           c (volatile! 0)
-          on-successfule-acquire-times (atom 0)
-          on-successfule-acquire-fn (fn [] (swap! on-successfule-acquire-times inc))]
+          on-successful-acquire-times (atom 0)
+          on-successful-acquire-fn (fn [] (swap! on-successful-acquire-times inc))]
       (defratelimiter testing-rate-limiter limiter-config)
-      (set-on-successful-acquire-event-consumer! testing-rate-limiter on-successfule-acquire-fn)
+      (set-on-successful-acquire-event-consumer! testing-rate-limiter on-successful-acquire-fn)
 
       (set-on-all-event-consumer! testing-rate-limiter
-                                  {:on-successful-acquire on-successfule-acquire-fn})
+                                  {:on-successful-acquire on-successful-acquire-fn})
 
       (is (= (drain-permissions testing-rate-limiter limiter-config)
              (:limit-for-period limiter-config)))
 
-      ;; due to implementation to acquire the next permission after all permissions
-      ;; were acquired is not need to wait whole period configured by :limit-for-period
       (let [start (System/nanoTime)]
         (resilience/execute-with-rate-limiter testing-rate-limiter
           (vswap! c inc))
         (let [d (duration-nanos start)]
-          (is (<= d (:limit-refresh-period-nanos limiter-config)))))
+          (is (>= d (:limit-refresh-period-nanos limiter-config)))))
 
       (doseq [_ (range 10)]
         (let [start (System/nanoTime)]
@@ -64,7 +62,7 @@
       (is (= {:number-of-waiting-threads 0, :available-permissions 1}
              (metrics testing-rate-limiter)))
       ;; we registered every kind of events twice, so statistic should be double
-      (is (= @on-successfule-acquire-times (* 2 (inc @c))))))
+      (is (= @on-successful-acquire-times (* 2 (inc @c))))))
 
   (testing "failed to acquire permission"
     (let [limiter-config {:timeout-millis              50

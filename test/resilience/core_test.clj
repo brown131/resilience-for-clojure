@@ -23,8 +23,8 @@
 
 (deftest test-execute
   (let [breaker-basic-config {:failure-rate-threshold                     50.0
-                              :ring-buffer-size-in-closed-state           30
-                              :ring-buffer-size-in-half-open-state        20
+                              :sliding-window-size           30
+                              :permitted-number-of-calls-in-half-open-state        20
                               :wait-millis-in-open-state                  1000
                               :automatic-transfer-from-open-to-half-open? true}
         retry-config {:max-attempts 3
@@ -33,10 +33,10 @@
       (retry/defretry testing-retry retry-config)
       (breaker/defbreaker testing-breaker breaker-basic-config)
       (let [retry-times (volatile! 0)
-            max-failed-allowed (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+            max-failed-allowed (max-failed-times (:sliding-window-size breaker-basic-config)
                                                  (:failure-rate-threshold breaker-basic-config))
             testing-fn (to-fn (do (vswap! retry-times inc) (fail)))]
-        (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+        (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
         (doseq [_ (range max-failed-allowed)]
           (is (= (execute
                    (testing-fn)
@@ -61,7 +61,7 @@
       (breaker/defbreaker testing-breaker breaker-basic-config)
       (let [retry-times (volatile! 0)
             finally-times (volatile! 0)
-            max-failed-allowed (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+            max-failed-allowed (max-failed-times (:sliding-window-size breaker-basic-config)
                                                  (:failure-rate-threshold breaker-basic-config))
             testing-fn (fn []
                          (execute
@@ -78,7 +78,7 @@
                                              :breaker-open)))
                            (recover nil (fn testing-finally-fn [] (vswap! finally-times inc)))))]
         (breaker/reset! testing-breaker)
-        (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+        (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
         (doseq [_ (range max-failed-allowed)]
           (is (= (testing-fn) :expected-exception)))
         (is (= (testing-fn) :breaker-open))
@@ -92,7 +92,7 @@
       (retry/defretry testing-retry retry-config)
       (breaker/defbreaker testing-breaker breaker-basic-config)
       (let [retry-times (volatile! 0)
-            max-failed-allowed (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+            max-failed-allowed (max-failed-times (:sliding-window-size breaker-basic-config)
                                                  (:failure-rate-threshold breaker-basic-config))
             testing-fn (fn []
                          (execute
@@ -102,7 +102,7 @@
                            (recover-from [CallNotPermittedException])
                            (recover)))]
         (breaker/reset! testing-breaker)
-        (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+        (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
         (doseq [_ (range max-failed-allowed)]
           (is (nil? (testing-fn))))
         (is (nil? (testing-fn)))
@@ -113,8 +113,8 @@
 
 (deftest test-with-resilience-family
   (let [breaker-basic-config {:failure-rate-threshold                     50.0
-                              :ring-buffer-size-in-closed-state           30
-                              :ring-buffer-size-in-half-open-state        20
+                              :sliding-window-size           30
+                              :permitted-number-of-calls-in-half-open-state        20
                               :wait-millis-in-open-state                  1000
                               :automatic-transfer-from-open-to-half-open? true}
         testing-breaker (breaker/circuit-breaker "testing-breaker" breaker-basic-config)
@@ -126,10 +126,10 @@
         testing-retry (retry/retry "testing-retry" retry-config)]
     (testing "retry with breaker"
       (let [retry-times (volatile! 0)
-            max-failed-allowed (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+            max-failed-allowed (max-failed-times (:sliding-window-size breaker-basic-config)
                                                  (:failure-rate-threshold breaker-basic-config))
             testing-fn (to-fn (do (vswap! retry-times inc) (fail)))]
-        (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+        (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
 
         (doseq [_ (range max-failed-allowed)]
           (is (= (try

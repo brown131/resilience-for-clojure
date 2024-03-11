@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [name])
   (:require [resilience.util :as u]
             [resilience.spec :as s])
-  (:import (io.github.resilience4j.retry RetryConfig RetryConfig$Builder RetryRegistry Retry IntervalFunction)
+  (:import (io.github.resilience4j.core IntervalFunction)
+           (io.github.resilience4j.retry RetryConfig RetryConfig$Builder RetryRegistry Retry)
            (java.time Duration)
            (java.util.function Predicate)
            (io.github.resilience4j.retry.event RetryEvent RetryEvent$Type)

@@ -24,7 +24,7 @@ Further more, it has [examples](https://github.com/ylgrgyq/resilience-for-clojur
 ;; when over 80% of the last 30 requests failed, the breaker will open for one second
 (breaker/defbreaker my-breaker 
   {:failure-rate-threshold 80.0
-   :ring-buffer-size-in-closed-state 30
+   :sliding-window-size 30
    :wait-millis-in-open-state 1000})
 
 ;; do something with the protection of the breaker
@@ -100,7 +100,7 @@ And there's a thread pool version bulkhead. Please refer to [doc](https://cljdoc
 ;; define a breaker
 (breaker/defbreaker my-breaker 
   {:failure-rate-threshold 80.0
-   :ring-buffer-size-in-closed-state 30
+   :sliding-window-size 30
    :wait-millis-in-open-state 1000})
 
 ;; define a retry
@@ -223,7 +223,7 @@ All of Circuit Breaker, Retry, Rate Limiter can register to their corresponding 
 (breaker/defregistry my-breaker-registry
   {:failure-rate-threshold           80.0
    :wait-millis-in-open-state        1000
-   :ring-buffer-size-in-closed-state 30})
+   :sliding-window-size 30})
 
 ;; define a breaker and register it to the Circuit Breaker Registry 
 ;; the new breaker will inherit configuration from the Registry
@@ -255,7 +255,7 @@ Still take `CircuitBreaker` as an example.
 ;; define a breaker like before
 (breaker/defbreaker my-breaker 
   {:failure-rate-threshold 80.0
-   :ring-buffer-size-in-closed-state 30
+   :sliding-window-size 30
    :wait-millis-in-open-state 1000})
 
 ;; set consumer for on-success event

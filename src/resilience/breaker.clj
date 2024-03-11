@@ -60,21 +60,21 @@
     Configures the number of permitted calls when the CircuitBreaker is half open.
     The size must be greater than 0. Default size is 10.
 
-  * :ring-buffer-size-in-half-open-state
+  * :permitted-number-of-calls-in-half-open-state
     Configures the size of the ring buffer when the circuit breaker
     is half open. The circuit breaker stores the success/failure
     status of the latest calls in a ring buffer. For example, if
-    :ring-buffer-size-in-half-open-state is 10, then at least 10 calls
+    :permitted-number-of-calls-in-half-open-state is 10, then at least 10 calls
     must be evaluated, before the failure rate can be calculated. If
     only 9 calls have been evaluated the CircuitBreaker will not trip
     back to closed or open even if all 9 calls have failed.
     The size must be greater than 0. Default size is 10.
 
-  * :ring-buffer-size-in-closed-state
+  * :sliding-window-size
     Configures the size of the ring buffer when the circuit breaker is
     closed. The circuit breaker stores the success/failure status of the
     latest calls in a ring buffer. For example, if
-    :ring-buffer-size-in-closed-state is 100, then at least 100 calls
+    :sliding-window-size is 100, then at least 100 calls
     must be evaluated, before the failure rate can be calculated. If
     only 99 calls have been evaluated the circuit breaker will not trip
     open even if all 99 calls have failed.
@@ -193,10 +193,6 @@
         (.slowCallDurationThreshold config (Duration/ofMillis duration)))
       (when-let [calls (:permitted-number-of-calls-in-half-open-state opts)]
         (.permittedNumberOfCallsInHalfOpenState config calls))
-      (when-let [size (:ring-buffer-size-in-half-open-state opts)]
-        (.ringBufferSizeInHalfOpenState config size))
-      (when-let [size (:ring-buffer-size-in-closed-state opts)]
-        (.ringBufferSizeInClosedState config size))
       (when-let [size (:sliding-window-size opts)]
         (.slidingWindowSize config size))
       (when-let [calls (:minimum-number-of-calls opts)]
@@ -205,9 +201,6 @@
         (if (keyword? type)
           (.slidingWindowType config (u/keyword->enum CircuitBreakerConfig$SlidingWindowType type))
           (.slidingWindowType config type)))
-      (when-let [record-failure (:record-failure opts)]
-        (.recordFailure config (reify Predicate
-                                 (test [_ v] (record-failure v)))))
       (when-let [record-exception (:record-exception opts)]
         (.recordException config (reify Predicate
                                    (test [_ v] (record-exception v)))))
@@ -285,8 +278,8 @@
    Example:
    (circuit-breaker my-breaker {:registry my-registry
                                 :failure-rate-threshold 50.0
-                                :ring-buffer-size-in-closed-state 30
-                                :ring-buffer-size-in-half-open-state 20})
+                                :sliding-window-size 30
+                                :permitted-number-of-calls-in-half-open-state 20})
 
    If you only want to create a circuit breaker and not register it to any
    CircuitBreakerRegistry, you just need to provide circuit breaker configurations in `config`
@@ -330,8 +323,8 @@
    Example:
    (defbreaker my-breaker {:registry my-registry
                            :failure-rate-threshold 50.0
-                           :ring-buffer-size-in-closed-state 30
-                           :ring-buffer-size-in-half-open-state 20})
+                           :sliding-window-size 30
+                           :permitted-number-of-calls-in-half-open-state 20})
 
    If you only want to create a circuit breaker and not register it to any
    CircuitBreakerRegistry, you just need to provide circuit breaker configuration in `config`

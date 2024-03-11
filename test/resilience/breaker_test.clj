@@ -32,29 +32,29 @@
 
 (deftest test-breaker
   (let [breaker-basic-config {:failure-rate-threshold                     50.0
-                              :ring-buffer-size-in-closed-state           30
-                              :ring-buffer-size-in-half-open-state        20
+                              :sliding-window-size           30
+                              :permitted-number-of-calls-in-half-open-state        20
                               :wait-millis-in-open-state                  1000
                               :automatic-transfer-from-open-to-half-open? true}]
     (defbreaker testing-breaker breaker-basic-config)
     (testing "breaker from CLOSED to OPEN"
       ;; fill the ring buffer for closed state
       (is (= :CLOSED (state testing-breaker)))
-      (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+      (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
 
       ;; let circuit open
       (let-breaker-open testing-breaker
-                        (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+                        (max-failed-times (:sliding-window-size breaker-basic-config)
                                           (:failure-rate-threshold breaker-basic-config)))
 
       (is (= {:failure-rate                    (:failure-rate-threshold breaker-basic-config)
-              :number-of-buffered-calls        (:ring-buffer-size-in-closed-state breaker-basic-config)
-              :number-of-failed-calls          (/ (:ring-buffer-size-in-closed-state breaker-basic-config) 2)
+              :number-of-buffered-calls        (:sliding-window-size breaker-basic-config)
+              :number-of-failed-calls          (/ (:sliding-window-size breaker-basic-config) 2)
               :number-of-not-permitted-calls   1
               :number-of-slow-calls            0
               :number-of-slow-failed-calls     0
               :number-of-slow-successful-calls 0
-              :number-of-successful-calls      (/ (:ring-buffer-size-in-closed-state breaker-basic-config) 2)
+              :number-of-successful-calls      (/ (:sliding-window-size breaker-basic-config) 2)
               :slow-call-rate                  0.0}
              (metrics testing-breaker))))
 
@@ -65,7 +65,7 @@
       (is (= :HALF_OPEN (state testing-breaker)))
 
       ;; open circuit again all request will be allowed during half open state until ring buffer is full
-      (let-breaker-open testing-breaker (:ring-buffer-size-in-half-open-state breaker-basic-config)))
+      (let-breaker-open testing-breaker (:permitted-number-of-calls-in-half-open-state breaker-basic-config)))
 
     (testing "breaker from HALF_OPEN to CLOSED"
       ;; wait circuit transfer to half open
@@ -74,7 +74,7 @@
       (is (= :HALF_OPEN (state testing-breaker)))
 
       ;; open circuit again all request will be allowed during half open state until ring buffer is full
-      (doseq [_ (range (:ring-buffer-size-in-half-open-state breaker-basic-config))]
+      (doseq [_ (range (:permitted-number-of-calls-in-half-open-state breaker-basic-config))]
         (resilience/execute-with-breaker testing-breaker (success)))
       (is (= :CLOSED (state testing-breaker)))
       (reset! testing-breaker))
@@ -134,7 +134,7 @@
         (reset! testing-breaker)
         ;; fill the ring buffer for closed state
         (is (= :CLOSED (state testing-breaker)))
-        (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+        (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
 
         (try (resilience/execute-with-breaker testing-breaker (throw (IllegalStateException. "ignored exception")))
              (catch IllegalStateException ex
@@ -142,7 +142,7 @@
 
         ;; let circuit open
         (let-breaker-open testing-breaker
-                          (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+                          (max-failed-times (:sliding-window-size breaker-basic-config)
                                             (:failure-rate-threshold breaker-basic-config)))
 
         (is (= @on-success-times 60))
@@ -154,8 +154,8 @@
 
 (deftest test-registry
   (let [breaker-basic-config {:failure-rate-threshold                     50.0
-                              :ring-buffer-size-in-closed-state           30
-                              :ring-buffer-size-in-half-open-state        20
+                              :sliding-window-size           30
+                              :permitted-number-of-calls-in-half-open-state        20
                               :wait-millis-in-open-state                  1000}]
     (defregistry testing-registry breaker-basic-config)
     (defbreaker testing-breaker {:registry testing-registry})
@@ -163,11 +163,11 @@
     (testing "breaker from CLOSED to OPEN and get breaker from registry"
       ;; fill the ring buffer for closed state
       (is (= :CLOSED (state testing-breaker)))
-      (fill-ring-buffer testing-breaker (:ring-buffer-size-in-closed-state breaker-basic-config) 0)
+      (fill-ring-buffer testing-breaker (:sliding-window-size breaker-basic-config) 0)
 
       ;; let circuit open
       (let-breaker-open testing-breaker
-                        (max-failed-times (:ring-buffer-size-in-closed-state breaker-basic-config)
+                        (max-failed-times (:sliding-window-size breaker-basic-config)
                                           (:failure-rate-threshold breaker-basic-config)))
       (is (= [testing-breaker] (get-all-breakers testing-registry))))))
 

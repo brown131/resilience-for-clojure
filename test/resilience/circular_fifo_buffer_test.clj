@@ -1,12 +1,12 @@
 (ns resilience.circular-fifo-buffer-test
   (:require [clojure.test :refer :all]
             [resilience.circular-fifo-buffer :refer :all])
-  (:import (io.vavr.control Option)
-           (java.util.concurrent ThreadLocalRandom)))
+  (:import [java.util Optional]
+           [java.util.concurrent ThreadLocalRandom]))
 
 (deftest test-take
   (testing "take from empty buffer"
-    (is (.isEmpty ^Option (take (circular-fifo-buffer 100)))))
+    (is (.isEmpty ^Optional (take (circular-fifo-buffer 100)))))
   (testing "take"
     (let [val 10101
           buffer (circular-fifo-buffer 100)]
